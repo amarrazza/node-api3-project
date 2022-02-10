@@ -22,7 +22,7 @@ async function validateUserId(req, res, next) {
   try {
     const user = await Users.getById(id);
     if(!user){
-      res.status(404).json({  message: 'This user could not be found'});
+      res.status(404).json({  message: 'user not found'});
     } else {
       req.user = user;
       next()
@@ -34,19 +34,33 @@ async function validateUserId(req, res, next) {
   }
 
   console.log('validateUserId middleware');
-  next()
 }
 
 function validateUser(req, res, next) {
   // DO YOUR MAGIC
+  const { name } = req.body;
+  if(!name){
+    res.status(400).json({
+      message: 'missing required name field'
+    })
+  } else {
+    next()
+  }
   console.log('validateUser middleware');
-  next()
+  
 }
 
 function validatePost(req, res, next) {
   // DO YOUR MAGIC
+  const { text } = req.body;
+  if(!text){
+    res.status(400).json({
+      message: "missing required text field"
+    })
+  } else {
+    next()
+  }
   console.log('validatePost middleware');
-  next()
 }
 
 // do not forget to expose these functions to other modules
