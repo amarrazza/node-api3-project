@@ -28,32 +28,79 @@ router.get('/:id', validateUserId, (req, res) => {
   res.json(req.user);
 });
 
-router.post('/', (req, res) => {
+router.post('/', validateUser, async (req, res, next) => {
   // RETURN THE NEWLY CREATED USER OBJECT
   // this needs a middleware to check that the request body is valid
+  let newUser = req.body;
+  try {
+    let result = await Users.insert(newUser);
+    res.status(201).json(result);
+    // res.status(201).json(result)
+  }
+  catch(err) {
+    next(err);
+  }
+
 });
 
-router.put('/:id', validateUserId, validateUser, (req, res) => {
+router.put('/:id', validateUserId, validateUser, (req, res, next) => {
   // RETURN THE FRESHLY UPDATED USER OBJECT
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
+  let { id } = req.params;
+  Users.update(id, req.body)
+    .then(updatedUser => {
+      res.json(updatedUser)
+    }).catch(next)
 });
 
-router.delete('/:id', validateUserId, validateUser, (req, res) => {
+router.delete('/:id', validateUserId, (req, res, next) => {
   // RETURN THE FRESHLY DELETED USER OBJECT
   // this needs a middleware to verify user id
+  let { id } = req.params;
+  Users.remove(id)
+    .then(resp => {
+      console.log(resp);
+      res.json({
+        message: 'Successfully deleted'
+      })
+    }
+    ).catch(next);
 });
 
-router.get('/:id/posts', validateUserId, (req, res) => {
+router.get('/:id/posts', validateUserId, (req, res, next) => {
   // RETURN THE ARRAY OF USER POSTS
   // this needs a middleware to verify user id
+  let { id } = req.params;
+
+  // try{
+  //   const result = await Users.getUserPosts(id)
+  //   res.json(result)
+  // }catch(err){
+  //   next(err);
+  // }
+
+  Users.getUserPosts(id)
+    .then(resp => {
+      res.json(resp)
+    })
+    .catch(next);
 });
 
-router.post('/:id/posts', validateUserId, validatePost, (req, res) => {
+router.post('/:id/posts', validateUserId, validatePost, async(req, res, next) => {
   // RETURN THE NEWLY CREATED USER POST
   // this needs a middleware to verify user id
   // and another middleware to check that the request body is valid
-  console.log(req.body);
+  let { id } = req.params;
+  try {
+    const result = await Posts.insert({
+      user_id: id,
+      text: req.body.text
+    })
+    res.status(201).json(result);
+  }catch(err) {
+    next(err);
+  }
 });
 
 router.use((err, req, res, next) => { //eslint-disable-line
